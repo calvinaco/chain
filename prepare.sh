@@ -7,9 +7,10 @@ if [ ! -z "${TRAVIS}" ]; then
 fi
 apt update
 apt install wget curl -y
-apt install python3 libssl-dev libcurl4-openssl-dev libelf-dev libdw-dev  gcc binutils-dev libc6-dev -y
+apt install python3 libssl-dev libcurl4-openssl-dev libelf-dev libdw-dev gcc binutils-dev libc6-dev -y
 apt install pkg-config -y
 apt install build-essential -y
+apt install jq -y
 
 command -v cmake > /dev/null
 if [ x"$?" = "x1" ]; then

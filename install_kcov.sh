@@ -9,7 +9,7 @@ if [ ! -f "$FILE" ]; then
     cd build
     cmake ..
     make
-    sudo make install
+    make install
     cd ../..
     rm -rf kcov-master
 fi
