@@ -10,8 +10,6 @@ platform:
 steps:
 - name: install-dependencies
   commands:
-  - ./prepare.sh
-  - ./install_zeromq.sh
   - export RUST_BACKTRACE=1
   - export RUSTFLAGS=-Ctarget-feature=+aes,+ssse3
   - export LD_LIBRARY_PATH=$HOME/lib
