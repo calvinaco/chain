@@ -16,6 +16,7 @@ steps:
   - export LIBRARY_PATH=$HOME/lib
   - export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
   - export PKG_CONFIG_PATH=$HOME/lib/pkgconfig
+  - . /opt/intel/sgxsdk/sgxsdk/environment
   - ./integration-tests/prepare.sh
 
 ...
