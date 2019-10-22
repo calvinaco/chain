@@ -8,8 +8,10 @@ platform:
   arch: amd64
 
 steps:
-- name: install-dependencies
+- name: test
   commands:
+  - export NIX_REMOTE=daemon
+  - nix-shell drone.nix
   - export RUST_BACKTRACE=1
   - export RUSTFLAGS=-Ctarget-feature=+aes,+ssse3
   - export LD_LIBRARY_PATH=$HOME/lib
@@ -18,6 +20,17 @@ steps:
   - export PKG_CONFIG_PATH=$HOME/lib/pkgconfig
   - . /opt/intel/sgxsdk/sgxsdk/environment
   - rustup default nightly-2019-08-01-x86_64-unknown-linux-gnu
-  - ./integration-tests/prepare.sh
+  - cd integration-tests
+  - ./prepare.sh
+  - . ./env.sh
+  - docker-compose up -d
+  - sleep 25
+  - docker ps
+  - docker-compose logs -t --tail="all"
+  - ./run-test.sh
+  - cd client-rpc
+  - yarn
+  - yarn test
+  - docker ps
 
 ...

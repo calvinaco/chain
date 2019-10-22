@@ -47,11 +47,13 @@ services:
       context: ../
       dockerfile: ./chain-tx-enclave/tx-validation/Dockerfile
       args:
-        SGX_MODE: SW
+        SGX_MODE: HW
         NETWORK_ID: ${CHAIN_HEX_ID:-AB}
     environment:
       RUST_BACKTRACE: 1
       RUST_LOG: debug
+    device:
+      /dev/sgx
   chain-tx-enclave-zerofee:
     image: integration-tests-tx-enclave
     depends_on:
