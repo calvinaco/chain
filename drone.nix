@@ -3,6 +3,7 @@ with import <nixpkgs> {};
 stdenv.mkDerivation {
     name = "node";
     buildInputs = [
+        bash
         git
         cmake
         openssl
@@ -14,5 +15,8 @@ stdenv.mkDerivation {
     ];
     shellHook = ''
         export PATH="$PWD/node_modules/.bin/:$PATH"
+        export OPENSSL_DIR="${openssl.dev}"
+        export OPENSSL_LIB_DIR="${openssl.out}/lib"
+        export LIBZMQ_PREFIX="/nix/store/$(ls /nix/store | grep -E "zeromq-[0-9\.]+$" | head -n1)"
     '';
 }
