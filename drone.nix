@@ -3,6 +3,9 @@ with import <nixpkgs> {};
 stdenv.mkDerivation {
     name = "node";
     buildInputs = [
+        git
+        cmake
+        openssl
         zeromq
         jq
         rustc
