@@ -8,20 +8,12 @@ platform:
   arch: amd64
 
 steps:
-- name: Environment and dependencies
+- name: Environment
   commands:
   - export NIX_REMOTE=daemon
-  - echo $PATH
   - . /usr/local/etc/profile.d/nix.sh
-  - echo $PATH
-  - nix-shell drone.nix
-  - export RUST_BACKTRACE=1
-  - export RUSTFLAGS=-Ctarget-feature=+aes,+ssse3
-  - export LD_LIBRARY_PATH=$HOME/lib
-  - export LIBRARY_PATH=$HOME/lib
-  - export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
-  - export PKG_CONFIG_PATH=$HOME/lib/pkgconfig
   - . /opt/intel/sgxsdk/sgxsdk/environment
+  - nix-shell drone.nix
 
 - name: Build
   commands:
