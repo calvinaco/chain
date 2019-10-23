@@ -10,17 +10,16 @@ platform:
 steps:
 - name: Environment and dependencies
   commands:
-  - echo $USER
   - export NIX_REMOTE=daemon
+  - . /usr/local/etc/profile.d/nix.sh
+  - nix-shell drone.nix
   - export RUST_BACKTRACE=1
   - export RUSTFLAGS=-Ctarget-feature=+aes,+ssse3
   - export LD_LIBRARY_PATH=$HOME/lib
   - export LIBRARY_PATH=$HOME/lib
   - export PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
   - export PKG_CONFIG_PATH=$HOME/lib/pkgconfig
-  - . /usr/local/etc/profile.d/nix.sh
   - . /opt/intel/sgxsdk/sgxsdk/environment
-  - nix-shell drone.nix
 
 - name: Build
   commands:
