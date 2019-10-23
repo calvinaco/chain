@@ -19,9 +19,6 @@ steps:
   - export PKG_CONFIG_PATH=$HOME/lib/pkgconfig
   - . /usr/local/etc/profile.d/nix.sh
   - . /opt/intel/sgxsdk/sgxsdk/environment
-
-- name: Nix shell
-  commands:
   - nix-shell drone.nix
 
 - name: Build test environment
