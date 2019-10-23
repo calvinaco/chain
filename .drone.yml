@@ -8,8 +8,9 @@ platform:
   arch: amd64
 
 steps:
-- name: Environment variables
+- name: Environment and dependencies
   commands:
+  - echo $USER
   - export NIX_REMOTE=daemon
   - export RUST_BACKTRACE=1
   - export RUSTFLAGS=-Ctarget-feature=+aes,+ssse3
@@ -21,7 +22,7 @@ steps:
   - . /opt/intel/sgxsdk/sgxsdk/environment
   - nix-shell drone.nix
 
-- name: Build test environment
+- name: Build
   commands:
   - cd integration-tests
   - ./prepare.sh
@@ -31,7 +32,7 @@ steps:
   - docker ps
   - docker-compose logs -t --tail="all"
 
-- name: Preliminary test
+- name: Preliminary tests
   commands:
   - ./run-test.sh
 
