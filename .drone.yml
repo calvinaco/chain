@@ -11,7 +11,9 @@ steps:
 - name: Environment and dependencies
   commands:
   - export NIX_REMOTE=daemon
+  - echo $PATH
   - . /usr/local/etc/profile.d/nix.sh
+  - echo $PATH
   - nix-shell drone.nix
   - export RUST_BACKTRACE=1
   - export RUSTFLAGS=-Ctarget-feature=+aes,+ssse3
