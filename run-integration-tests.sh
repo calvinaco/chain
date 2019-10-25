@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 
 rustup default nightly-2019-08-01-x86_64-unknown-linux-gnu
+docker-compose up
 
 # Build test environment
 cd integration-tests
 ./prepare.sh
 . ./env.sh
-./docker-compose up -d
+docker-compose up -d
 
 sleep 25
 
 # Docker status
 docker ps
-./docker-compose logs -t --tail="all"
+docker-compose logs -t --tail="all"
 
 # Preliminary tests
 ./run-test.sh
