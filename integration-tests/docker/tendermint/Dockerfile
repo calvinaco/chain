@@ -27,7 +27,7 @@ RUN apk update && \
 
 # Download and install Tendermint
 RUN echo "Installing Tendermint ${VERSION}"
-RUN curl -LO https://github.com/tendermint/tendermint/releases/download/v${VERSION}/tendermint_v${VERSION}_linux_amd64.zip
+RUN curl -sSLO https://github.com/tendermint/tendermint/releases/download/v${VERSION}/tendermint_v${VERSION}_linux_amd64.zip
 RUN unzip tendermint_v${VERSION}_linux_amd64.zip -d /usr/bin/
 RUN rm tendermint_v${VERSION}_linux_amd64.zip
 
