@@ -8,7 +8,7 @@ platform:
   arch: amd64
 
 steps:
-- name: Tests
+- name: tests
   commands:
   - export NIX_REMOTE=daemon
   - export PATH="/nix/var/nix/profiles/default/bin/:$PATH"

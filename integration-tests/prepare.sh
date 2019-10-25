@@ -50,15 +50,8 @@ function init_tendermint() {
     print_config "TENDERMINT_VERSION" "${TENDERMINT_VERSION}"
     rm -rf ./tendermint
     mkdir -p ./tendermint
-    if [ ! -z "${CI}" ]; then
-        chmod 777 ./tendermint
-    fi
-    docker run -v "$(pwd)/tendermint:/tendermint" --env TMHOME=/tendermint "tendermint/tendermint:v${TENDERMINT_VERSION}" init
-    echo "57"
-    if [ ! -z "${CI}" ]; then
-        sudo chmod -R 777 ./tendermint
-    fi
-    echo "61"
+
+    docker run -v "$(pwd)/tendermint:/tendermint" --env TMHOME=/tendermint --user "$(id -u):$(id -g)" "tendermint/tendermint:v${TENDERMINT_VERSION}" init
 
     index_all_tags "tendermint"
 }
