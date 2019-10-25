@@ -11,8 +11,11 @@ steps:
 - name: Environment
   commands:
   - export NIX_REMOTE=daemon
+  - echo $PATH
   - . /usr/local/etc/profile.d/nix.sh
+  - echo $PATH
   - . /opt/intel/sgxsdk/sgxsdk/environment
+  - echo $PATH
   - nix-shell drone.nix
 
 - name: Build
