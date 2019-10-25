@@ -14,6 +14,9 @@ steps:
   - export PATH="/nix/var/nix/profiles/default/bin/:$PATH"
   - . /usr/local/etc/profile.d/nix.sh
   - . /opt/intel/sgxsdk/sgxsdk/environment
+  - curl -sSL "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
+  - chmod +x docker-compose
+  - echo $PATH
   - nix-channel --add https://nixos.org/channels/nixpkgs-unstable
   - nix-channel --update
   - nix-shell drone.nix --run "./run-integration-tests.sh"
