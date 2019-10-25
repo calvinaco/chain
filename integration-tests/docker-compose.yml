@@ -52,8 +52,8 @@ services:
     environment:
       RUST_BACKTRACE: 1
       RUST_LOG: debug
-    device:
-      /dev/sgx
+    devices:
+      - /dev/sgx:/dev/sgx
   chain-tx-enclave-zerofee:
     image: integration-tests-tx-enclave
     depends_on:
@@ -61,6 +61,8 @@ services:
     environment:
       RUST_BACKTRACE: 1
       RUST_LOG: debug
+    devices:
+      - /dev/sgx:/dev/sgx
 
   client-rpc:
     image: integration-tests-chain

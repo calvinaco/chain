@@ -54,9 +54,11 @@ function init_tendermint() {
         chmod 777 ./tendermint
     fi
     docker run -v "$(pwd)/tendermint:/tendermint" --env TMHOME=/tendermint "tendermint/tendermint:v${TENDERMINT_VERSION}" init
+    echo "57"
     if [ ! -z "${CI}" ]; then
         sudo chmod -R 777 ./tendermint
     fi
+    echo "61"
 
     index_all_tags "tendermint"
 }
