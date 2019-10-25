@@ -8,7 +8,7 @@ platform:
   arch: amd64
 
 steps:
-- name: Environment
+- name: Build
   commands:
   - export NIX_REMOTE=daemon
   - export PATH="/nix/var/nix/profiles/default/bin/:$PATH"
@@ -16,9 +16,6 @@ steps:
   - . /opt/intel/sgxsdk/sgxsdk/environment
   - nix-channel --add https://nixos.org/channels/nixpkgs-unstable
   - nix-channel --update
-
-- name: Build
-  commands:
   - nix-shell drone.nix
   - cd integration-tests
   - ./prepare.sh
