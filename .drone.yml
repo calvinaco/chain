@@ -16,10 +16,10 @@ steps:
   - . /opt/intel/sgxsdk/sgxsdk/environment
   - nix-channel --add https://nixos.org/channels/nixpkgs-unstable
   - nix-channel --update
-  - nix-shell drone.nix
 
 - name: Build
   commands:
+  - nix-shell drone.nix
   - cd integration-tests
   - ./prepare.sh
   - . ./env.sh
