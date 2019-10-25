@@ -18,7 +18,7 @@ steps:
   - nix-channel --update
   - nix-shell drone.nix
   - rustup default nightly-2019-08-01-x86_64-unknown-linux-gnu
-  - echo $RUSTFLAGS
+  - echo $OPENSSL_DIR
   - cd integration-tests
   - ./prepare.sh
   - . ./env.sh
