@@ -16,7 +16,8 @@ steps:
   - . /opt/intel/sgxsdk/sgxsdk/environment
   - nix-channel --add https://nixos.org/channels/nixpkgs-unstable
   - nix-channel --update
-  - nix-shell drone.nix --run "node -v; \
+  - nix-shell drone.nix --run "ls; \
+    node -v; \
     rustup default nightly-2019-08-01-x86_64-unknown-linux-gnu; \
     cd integration-tests; \
     ./prepare.sh; \
