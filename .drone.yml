@@ -29,6 +29,6 @@ steps:
     cd client-rpc; \
     yarn; \
     yarn test; \
-    docker ps
+    docker ps"
 
 ...
