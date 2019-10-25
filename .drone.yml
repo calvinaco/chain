@@ -17,8 +17,8 @@ steps:
   - nix-channel --add https://nixos.org/channels/nixpkgs-unstable
   - nix-channel --update
   - nix-shell drone.nix
+  - node -v
   - rustup default nightly-2019-08-01-x86_64-unknown-linux-gnu
-  - echo $OPENSSL_DIR
   - cd integration-tests
   - ./prepare.sh
   - . ./env.sh
