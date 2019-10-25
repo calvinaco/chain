@@ -14,6 +14,8 @@ steps:
   - export PATH="/nix/var/nix/profiles/default/bin/:$PATH"
   - . /usr/local/etc/profile.d/nix.sh
   - . /opt/intel/sgxsdk/sgxsdk/environment
+  - nix-channel --add https://nixos.org/channels/nixpkgs-unstable
+  - nix-channel --update
   - nix-shell drone.nix
 
 - name: Build
