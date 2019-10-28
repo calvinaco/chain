@@ -86,10 +86,6 @@ function create_wallet_staking_address() {
     RESULT=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address new --name ${1} --type Staking)
     echo "${RESULT}"
     RET_VALUE=$(echo $RESULT | sed -En "s/^.*(0x[0-9a-zA-Z]+).*$/\1/p")
-
-    # print_step "Retrieving last staking address for wallet \"${1}\""
-    # ADDRESS_LIST=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address list --name ${1} --type Staking)
-    # RET_VALUE=$(echo $ADDRESS_LIST | tail -n1 | sed -En "s/^.*(0x[0-9a-zA-Z]+).*$/\1/p")
 }
 
 # Create wallet staking address
@@ -100,11 +96,6 @@ function create_wallet_transfer_address() {
     RESULT=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address new --name ${1} --type Transfer)
     echo "${RESULT}"
     RET_VALUE=$(echo $RESULT | sed -En "s/^.*(dcro[0-9a-zA-Z]+).*$/\1/p")
-
-    # print_step "Retrieving last transfer address for wallet \"${1}\""
-    # ADDRESS_LIST=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address list --name ${1} --type Transfer)
-    # echo "${ADDRESS_LIST}"
-    # RET_VALUE=$(echo $ADDRESS_LIST | tail -n1 | sed -En "s/^.*(dcro[0-9a-zA-Z]+).*$/\1/p")
 }
 
 # Save wallet addresses into JSON file
@@ -266,3 +257,6 @@ generate_tendermint_genesis "${DEV_CONF_WITHFEE_PATH}" "${TENDERMINT_WITHFEE_DIR
 generate_tendermint_genesis "${DEV_CONF_ZEROFEE_PATH}" "${TENDERMINT_ZEROFEE_DIRECTORY}" "${CHAIN_ID}"
 
 sleep 5
+
+cat "${TENDERMINT_WITHFEE_DIRECTORY}/config/genesis.json"
+cat "${TENDERMINT_ZEROFEE_DIRECTORY}/config/genesis.json"
