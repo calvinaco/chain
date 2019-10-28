@@ -83,11 +83,13 @@ function create_wallet() {
 # @argument Wallet Passphrase
 function create_wallet_staking_address() {
     print_step "Creating staking address for wallet \"${1}\""
-    printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address new --name ${1} --type Staking
+    RESULT=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address new --name ${1} --type Staking)
+    echo "${RESULT}"
+    RET_VALUE=$(echo $RESULT | sed -En "s/^.*(0x[0-9a-zA-Z]+).*$/\1/p")
 
-    print_step "Retrieving last staking address for wallet \"${1}\""
-    ADDRESS_LIST=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address list --name ${1} --type Staking)
-    RET_VALUE=$(echo $ADDRESS_LIST | tail -n1 | sed -En "s/^.*(0x[0-9a-zA-Z]+).*$/\1/p")
+    # print_step "Retrieving last staking address for wallet \"${1}\""
+    # ADDRESS_LIST=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address list --name ${1} --type Staking)
+    # RET_VALUE=$(echo $ADDRESS_LIST | tail -n1 | sed -En "s/^.*(0x[0-9a-zA-Z]+).*$/\1/p")
 }
 
 # Create wallet staking address
@@ -95,12 +97,14 @@ function create_wallet_staking_address() {
 # @argument Wallet Passphrase
 function create_wallet_transfer_address() {
     print_step "Creating transfer address for wallet \"${1}\""
-    printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address new --name ${1} --type Transfer
+    RESULT=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address new --name ${1} --type Transfer)
+    echo "${RESULT}"
+    RET_VALUE=$(echo $RESULT | sed -En "s/^.*(dcro[0-9a-zA-Z]+).*$/\1/p")
 
-    print_step "Retrieving last transfer address for wallet \"${1}\""
-    ADDRESS_LIST=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address list --name ${1} --type Transfer)
-    echo "${ADDRESS_LIST}"
-    RET_VALUE=$(echo $ADDRESS_LIST | tail -n1 | sed -En "s/^.*(dcro[0-9a-zA-Z]+).*$/\1/p")
+    # print_step "Retrieving last transfer address for wallet \"${1}\""
+    # ADDRESS_LIST=$(printf "${2}\n" | CRYPTO_CHAIN_ID=${CHAIN_ID} CRYPTO_CLIENT_STORAGE=${WALLET_STORAGE_DIRECTORY} ../target/debug/client-cli address list --name ${1} --type Transfer)
+    # echo "${ADDRESS_LIST}"
+    # RET_VALUE=$(echo $ADDRESS_LIST | tail -n1 | sed -En "s/^.*(dcro[0-9a-zA-Z]+).*$/\1/p")
 }
 
 # Save wallet addresses into JSON file
@@ -216,7 +220,7 @@ cargo build
 
 if [ -z "${CI}" ]; then
     print_step "Build Chain Transaction Enclave image"
-    build_chain_tx_enclave_docker_image
+    # build_chain_tx_enclave_docker_image
 fi
 
 print_step "Initialize Tendermint"
