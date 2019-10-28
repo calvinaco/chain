@@ -31,7 +31,7 @@ services:
     command: /usr/bin/chain-abci --host 0.0.0.0 --port 26658 --chain_id ${CHAIN_ID} --genesis_app_hash ${WITHFEE_APP_HASH} --enclave_server tcp://chain-tx-enclave:25933
     environment:
       RUST_BACKTRACE: 1
-      RUST_LOG: info
+      RUST_LOG: debug
   chain-abci-zerofee:
     image: integration-tests-chain
     depends_on:
@@ -39,7 +39,7 @@ services:
     command: /usr/bin/chain-abci --host 0.0.0.0 --port 26658 --chain_id ${CHAIN_ID} --genesis_app_hash ${ZEROFEE_APP_HASH} --enclave_server tcp://chain-tx-enclave-zerofee:25933
     environment:
       RUST_BACKTRACE: 1
-      RUST_LOG: info
+      RUST_LOG: debug
 
   chain-tx-enclave:
     image: integration-tests-tx-enclave
