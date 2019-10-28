@@ -44,5 +44,8 @@ else
   exit 1
 fi
 
+ping chain-abci
+ping chain-abci-zerofee 
+
 print_step "Starting Tendermint"
 /usr/bin/tendermint node --proxy_app=${PROXY_APP} --rpc.laddr=tcp://0.0.0.0:26657 --consensus.create_empty_blocks=true
