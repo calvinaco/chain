@@ -59,13 +59,10 @@ jobs:
   include:
     - <<: *rust
       rust: stable
-      if: (branch != staging.tmp) AND (branch != trying.tmp)
     - <<: *rust
       rust: beta
-      if: (branch = staging) OR (branch = trying)
     - <<: *rust
       rust: nightly
-      if: (branch != staging.tmp) AND (branch != trying.tmp)
     # - name: Integration Test
     #   language: rust
     #   sudo: required
