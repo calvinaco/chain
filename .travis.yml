@@ -53,10 +53,10 @@ rust: &rust
     - LD_LIBRARY_PATH=$HOME/lib
     - PKG_CONFIG_PATH=$HOME/lib/pkgconfig
   before_install: # versions from https://github.com/erickt/rust-zmq/blob/master/.travis.yml
-    - ./install_zeromq.sh
+    - ./ci-scripts/install_zeromq.sh
     - |
       if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
-        ./install_kcov.sh 
+        ./ci-scripts/install_kcov.sh 
         cargo-kcov --version || cargo install cargo-kcov;
       fi
 
@@ -103,12 +103,12 @@ jobs:
         - ./prepare.sh || travis_terminate 1;
         - . ./env.sh
         - docker-compose up -d || travis_terminate 1;
-        - ./wait-for-setup.sh || (docker-compose ps && docker-compose logs -t --tail="all" && travis_terminate 1);
-        - ./run-test.sh || (docker-compose ps && docker-compose logs -t --tail="all" && travis_terminate 1);
+        - ./wait-for-setup.sh || (docker-compose ps; docker-compose logs -t --tail="all"; travis_terminate 1);
+        - ./run-test.sh || (docker-compose ps; docker-compose logs -t --tail="all"; travis_terminate 1);
         - |
           cd client-rpc
           yarn
-          yarn test || (docker-compose ps && docker-compose logs -t --tail="all" && travis_terminate 1);
+          yarn test || (docker-compose ps; docker-compose logs -t --tail="all"; travis_terminate 1);
 
     - <<: *clean_cache
       rust: stable
