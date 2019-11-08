@@ -17,3 +17,5 @@ if [ ! -f "${CARGO_KCOV_FILE}" ] || [ ! -f "${KCOV_FILE}" ]; then
     cd ../..
     rm -rf kcov-master
 fi
+ls "${HOME}/.cargo/bin"
+ls /usr/local/bin
