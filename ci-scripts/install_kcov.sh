@@ -12,9 +12,8 @@ if [ ! -f "${CARGO_KCOV_FILE}" ] || [ ! -f "${KCOV_FILE}" ]; then
     cmake ..
     make
     sudo make install
-    mv /usr/local/bin/kcov "${HOME}/bin"
-    mv /usr/local/bin/kcov-system-daemon "${HOME}/bin"
+    sudo mv /usr/local/bin/kcov "${HOME}/bin"
+    sudo mv /usr/local/bin/kcov-system-daemon "${HOME}/bin"
     cd ../..
     rm -rf kcov-master
 fi
-echo $PATH
