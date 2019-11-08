@@ -2,6 +2,8 @@
 
 CARGO_KCOV_FILE="${HOME}/.cargo/bin/cargo-kcov"
 KCOV_FILE="/usr/local/bin/kcov"
+ls "${HOME}/.cargo/bin"
+ls /usr/local/bin
 if [ ! -f "${CARGO_KCOV_FILE}" ] || [ ! -f "${KCOV_FILE}" ]; then
     echo "kcov is not installed"
     wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz
