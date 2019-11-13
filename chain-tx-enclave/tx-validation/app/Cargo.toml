@@ -11,8 +11,6 @@ sgx-test = []
 
 [dependencies]
 sled = "0.29"
-hex = "0.4"
-dirs = "1.0.2"
 zmq = "0.9"
 log = "0.4.0"
 env_logger = "0.7.0"
@@ -23,4 +21,4 @@ chain-core   = { path = "../../../chain-core" }
 chain-tx-validation   = { path = "../../../chain-tx-validation" }
 enclave-protocol   = { path = "../../../enclave-protocol" }
 parity-scale-codec = { version = "1.0" }
-secp256k1zkp = { git = "https://github.com/crypto-com/rust-secp256k1-zkp.git", rev = "c5ef4fad2d439d58f1d5deab4de0fc88ce0c8b7d", features = ["recovery", "endomorphism"] }
+secp256k1zkp = { git = "https://github.com/crypto-com/rust-secp256k1-zkp.git", rev = "8b9a38b870a7759fcdbd4a5d435b5ba873c70afd", features = ["recovery", "endomorphism"] }

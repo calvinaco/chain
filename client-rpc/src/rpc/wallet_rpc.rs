@@ -1,8 +1,11 @@
 use std::collections::BTreeSet;
 use std::str::FromStr;
 
+use bip39::{Language, Mnemonic};
 use jsonrpc_core::Result;
 use jsonrpc_derive::rpc;
+use secstr::*;
+use zeroize::Zeroize;
 
 use chain_core::init::coin::Coin;
 use chain_core::tx::data::access::{TxAccess, TxAccessPolicy};
@@ -11,8 +14,9 @@ use chain_core::tx::data::attribute::TxAttributes;
 use chain_core::tx::data::output::TxOut;
 use chain_core::tx::TxObfuscated;
 use chain_core::tx::{TxAux, TxEnclaveAux};
-use client_common::{PublicKey, Result as CommonResult};
+use client_common::{ErrorKind, PublicKey, Result as CommonResult, ResultExt};
 use client_core::types::TransactionChange;
+use client_core::types::WalletKind;
 use client_core::{MultiSigWalletClient, WalletClient};
 
 use crate::server::{rpc_error_from_string, to_rpc_error, WalletRequest};
@@ -23,7 +27,10 @@ pub trait WalletRpc: Send + Sync {
     fn balance(&self, request: WalletRequest) -> Result<Coin>;
 
     #[rpc(name = "wallet_create")]
-    fn create(&self, request: WalletRequest) -> Result<String>;
+    fn create(&self, request: WalletRequest, walletkind: WalletKind) -> Result<String>;
+
+    #[rpc(name = "wallet_restore")]
+    fn restore(&self, request: WalletRequest, mnemonics: SecUtf8) -> Result<String>;
 
     #[rpc(name = "wallet_createStakingAddress")]
     fn create_staking_address(&self, request: WalletRequest) -> Result<String>;
@@ -87,10 +94,43 @@ where
         }
     }
 
-    fn create(&self, request: WalletRequest) -> Result<String> {
-        if let Err(err) = self.client.new_wallet(&request.name, &request.passphrase) {
-            return Err(to_rpc_error(err));
+    fn create(&self, request: WalletRequest, kind: WalletKind) -> Result<String> {
+        let mnemonic = self
+            .client
+            .new_wallet(&request.name, &request.passphrase, kind)
+            .map_err(to_rpc_error)?;
+
+        self.client
+            .new_staking_address(&request.name, &request.passphrase)
+            .map_err(to_rpc_error)?;
+        self.client
+            .new_transfer_address(&request.name, &request.passphrase)
+            .map_err(to_rpc_error)?;
+
+        match (kind, mnemonic) {
+            (WalletKind::Basic, None) => Ok(request.name),
+            (WalletKind::HD, Some(mnemonic)) => Ok(mnemonic.to_string()),
+            _ => Err(rpc_error_from_string(
+                "Internal Error: Invalid mnemonic for given wallet kind".to_owned(),
+            )),
         }
+    }
+
+    fn restore(&self, request: WalletRequest, mnemonic: SecUtf8) -> Result<String> {
+        let mnemonic = Mnemonic::from_phrase(mnemonic.unsecure(), Language::English)
+            .chain(|| {
+                (
+                    ErrorKind::DeserializationError,
+                    "Unable to deserialize mnemonic",
+                )
+            })
+            .map_err(to_rpc_error)?;
+
+        self.client
+            .restore_wallet(&request.name, &request.passphrase, &mnemonic)
+            .map_err(to_rpc_error)?;
+
+        mnemonic.into_phrase().zeroize();
 
         self.client
             .new_staking_address(&request.name, &request.passphrase)
@@ -318,7 +358,6 @@ pub mod tests {
                         },
                     }))
                 }
-                SignedTransaction::UnbondStakeTransaction(_, _) => unreachable!(),
             }
         }
     }
@@ -417,7 +456,10 @@ pub mod tests {
         let wallet_rpc = setup_wallet_rpc();
 
         wallet_rpc
-            .create(create_wallet_request("Default", "123456"))
+            .create(
+                create_wallet_request("Default", "123456"),
+                WalletKind::Basic,
+            )
             .unwrap();
         assert_eq!(
             Coin::zero(),
@@ -435,7 +477,10 @@ pub mod tests {
             let wallet_rpc = setup_wallet_rpc();
 
             wallet_rpc
-                .create(create_wallet_request("Default", "123456"))
+                .create(
+                    create_wallet_request("Default", "123456"),
+                    WalletKind::Basic,
+                )
                 .unwrap();
 
             assert_eq!(
@@ -444,7 +489,10 @@ pub mod tests {
                     "Wallet with name (Default) already exists"
                 )),
                 wallet_rpc
-                    .create(create_wallet_request("Default", "123456"))
+                    .create(
+                        create_wallet_request("Default", "123456"),
+                        WalletKind::Basic
+                    )
                     .unwrap_err()
             );
         }
@@ -456,7 +504,10 @@ pub mod tests {
             assert_eq!(
                 "Default".to_owned(),
                 wallet_rpc
-                    .create(create_wallet_request("Default", "123456"))
+                    .create(
+                        create_wallet_request("Default", "123456"),
+                        WalletKind::Basic
+                    )
                     .unwrap()
             );
 
@@ -468,7 +519,9 @@ pub mod tests {
             let wallet_rpc = setup_wallet_rpc();
             let wallet_request = create_wallet_request("Default", "123456");
 
-            wallet_rpc.create(wallet_request.clone()).unwrap();
+            wallet_rpc
+                .create(wallet_request.clone(), WalletKind::Basic)
+                .unwrap();
 
             assert_eq!(
                 1,
@@ -492,7 +545,9 @@ pub mod tests {
         let wallet_rpc = setup_wallet_rpc();
         let wallet_request = create_wallet_request("Default", "123456");
 
-        wallet_rpc.create(wallet_request.clone()).unwrap();
+        wallet_rpc
+            .create(wallet_request.clone(), WalletKind::Basic)
+            .unwrap();
         assert_eq!(
             1,
             wallet_rpc
@@ -519,7 +574,9 @@ pub mod tests {
         let wallet_rpc = setup_wallet_rpc();
         let wallet_request = create_wallet_request("Default", "123456");
 
-        wallet_rpc.create(wallet_request.clone()).unwrap();
+        wallet_rpc
+            .create(wallet_request.clone(), WalletKind::Basic)
+            .unwrap();
 
         assert_eq!(
             1,
@@ -547,7 +604,9 @@ pub mod tests {
         let wallet_rpc = setup_wallet_rpc();
         let wallet_request = create_wallet_request("Default", "123456");
 
-        wallet_rpc.create(wallet_request.clone()).unwrap();
+        wallet_rpc
+            .create(wallet_request.clone(), WalletKind::Basic)
+            .unwrap();
 
         assert_eq!(
             wallet_rpc
@@ -565,13 +624,19 @@ pub mod tests {
         assert_eq!(0, wallet_rpc.list().unwrap().len());
 
         wallet_rpc
-            .create(create_wallet_request("Default", "123456"))
+            .create(
+                create_wallet_request("Default", "123456"),
+                WalletKind::Basic,
+            )
             .unwrap();
 
         assert_eq!(vec!["Default"], wallet_rpc.list().unwrap());
 
         wallet_rpc
-            .create(create_wallet_request("Personal", "123456"))
+            .create(
+                create_wallet_request("Personal", "123456"),
+                WalletKind::Basic,
+            )
             .unwrap();
 
         let wallet_list = wallet_rpc.list().unwrap();
@@ -585,7 +650,9 @@ pub mod tests {
         let wallet_rpc = setup_wallet_rpc();
         let wallet_request = create_wallet_request("Default", "123456");
 
-        wallet_rpc.create(wallet_request.clone()).unwrap();
+        wallet_rpc
+            .create(wallet_request.clone(), WalletKind::Basic)
+            .unwrap();
         assert_eq!(
             0,
             wallet_rpc
@@ -619,5 +686,68 @@ pub mod tests {
             name: name.to_owned(),
             passphrase: SecUtf8::from(passphrase),
         }
+    }
+
+    #[test]
+    fn hdwallet_should_create_hd_wallet() {
+        let wallet_rpc = setup_wallet_rpc();
+
+        wallet_rpc
+            .create(create_wallet_request("Default", "123456"), WalletKind::HD)
+            .unwrap();
+    }
+
+    #[test]
+    fn hdwallet_should_recover_hd_wallet() {
+        let wallet_rpc = setup_wallet_rpc();
+
+        let result=wallet_rpc
+            .restore(
+                create_wallet_request("Default", "123456"),
+                SecUtf8::from("online hire print other clock like betray vote hollow bus insect meadow replace two tape worry quality disease cabin girl tree pudding issue radar")
+            )
+            .unwrap();
+        assert!("Default" == result);
+    }
+
+    #[test]
+    fn wallet_can_send_amount_should_fail_with_insufficient_amount() {
+        let wallet_rpc = setup_wallet_rpc();
+
+        let result = wallet_rpc
+            .restore(
+                create_wallet_request("Default", "123456"),
+                SecUtf8::from("online hire print other clock like betray vote hollow bus insect meadow replace two tape worry quality disease cabin girl tree pudding issue radar")
+            )
+            .unwrap();
+        assert_eq!("Default", result);
+
+        let wallet_request = create_wallet_request("Default", "123456");
+
+        let result = wallet_rpc
+            .create_transfer_address(wallet_request.clone())
+            .unwrap();
+        assert_eq!(
+            "dcro1ed02367j6wh8mvhjqah4pfxk7y49hlxzsmf7ykt6q5mdlv65lfdsktx0xd",
+            result.to_string()
+        );
+
+        let to_result = wallet_rpc
+            .create_transfer_address(wallet_request.clone())
+            .unwrap();
+        assert_eq!(
+            "dcro1g7ld56zlc4vx8mkrww6vhjth38vcjud5ys6wcgwckucnrjvmz0nsvvhvpf",
+            to_result.to_string()
+        );
+
+        let viewkey = wallet_rpc.get_view_key(wallet_request.clone()).unwrap();
+
+        let send_result = wallet_rpc.send_to_address(
+            wallet_request.clone(),
+            to_result,
+            Coin::from(1_0000u32),
+            vec![viewkey],
+        );
+        assert!(send_result.is_err());
     }
 }

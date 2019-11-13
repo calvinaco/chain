@@ -151,10 +151,7 @@ impl<T: EnclaveProxy> abci::Application for ChainNodeApp<T> {
             }
         }
 
-        let slashing_time =
-            last_state.block_time + i64::from(last_state.slashing_config.slash_wait_period);
-
-        let mut accounts_to_jail = Vec::new();
+        let mut accounts_to_punish = Vec::new();
 
         for evidence in req.byzantine_validators.iter() {
             if let Some(validator) = evidence.validator.as_ref() {
@@ -168,68 +165,87 @@ impl<T: EnclaveProxy> abci::Application for ChainNodeApp<T> {
                     .expect("Validator not found in liveness tracker")
                     .address();
 
-                accounts_to_jail.push(account_address);
-
-                let slashing_ratio = last_state.slashing_config.byzantine_slash_percent;
-
-                match last_state
-                    .punishment
-                    .slashing_schedule
-                    .get_mut(&account_address)
-                {
-                    Some(account_slashing_schedule) => {
-                        account_slashing_schedule.update_slash_ratio(slashing_ratio);
-                    }
-                    None => {
-                        last_state.punishment.slashing_schedule.insert(
-                            account_address,
-                            SlashingSchedule::new(slashing_ratio, slashing_time),
-                        );
-                    }
-                }
+                accounts_to_punish.push((
+                    account_address,
+                    last_state.slashing_config.byzantine_slash_percent,
+                ))
             }
         }
 
         let missed_block_threshold = last_state.jailing_config.missed_block_threshold;
 
-        let non_live_addresses = last_state
-            .punishment
-            .validator_liveness
-            .values()
-            .filter(|tracker| !tracker.is_live(missed_block_threshold))
-            .map(LivenessTracker::address);
+        accounts_to_punish.extend(
+            last_state
+                .punishment
+                .validator_liveness
+                .values()
+                .filter(|tracker| !tracker.is_live(missed_block_threshold))
+                .map(|liveness_tracker| {
+                    (
+                        liveness_tracker.address(),
+                        last_state.slashing_config.liveness_slash_percent,
+                    )
+                }),
+        );
 
-        let slashing_ratio = last_state.slashing_config.liveness_slash_percent;
+        let slashing_time =
+            last_state.block_time + i64::from(last_state.slashing_config.slash_wait_period);
+        let slashing_proportion =
+            self.get_slashing_proportion(accounts_to_punish.iter().map(|x| x.0));
 
-        for non_live_address in non_live_addresses {
+        let mut jailing_event = Event::new();
+        jailing_event.field_type = TendermintEventType::JailValidators.to_string();
+
+        let last_state = self
+            .last_state
+            .as_mut()
+            .expect("executing begin block, but no app state stored (i.e. no initchain or recovery was executed)");
+
+        for (account_address, slash_ratio) in accounts_to_punish.iter() {
             match last_state
                 .punishment
                 .slashing_schedule
-                .get_mut(&non_live_address)
+                .get_mut(&account_address)
             {
                 Some(account_slashing_schedule) => {
-                    account_slashing_schedule.update_slash_ratio(slashing_ratio);
+                    account_slashing_schedule
+                        .update_slash_ratio((*slash_ratio) * slashing_proportion);
                 }
                 None => {
                     last_state.punishment.slashing_schedule.insert(
-                        non_live_address,
-                        SlashingSchedule::new(slashing_ratio, slashing_time),
+                        *account_address,
+                        SlashingSchedule::new((*slash_ratio) * slashing_proportion, slashing_time),
                     );
                 }
             }
-
-            accounts_to_jail.push(non_live_address)
         }
 
-        for account_address in accounts_to_jail {
+        for (account_address, _) in accounts_to_punish {
+            let mut kvpair = KVPair::new();
+            kvpair.key = b"account".to_vec();
+            kvpair.value = account_address.to_string().into_bytes();
+
+            jailing_event.attributes.push(kvpair);
+
             self.jail_account(account_address)
                 .expect("Unable to jail account in begin block");
         }
 
-        self.slash_eligible_accounts()
+        let slashing_event = self
+            .slash_eligible_accounts()
             .expect("Unable to slash accounts in slashing queue");
 
-        ResponseBeginBlock::new()
+        let mut response = ResponseBeginBlock::new();
+
+        if !jailing_event.attributes.is_empty() {
+            response.events.push(jailing_event);
+        }
+
+        if !slashing_event.attributes.is_empty() {
+            response.events.push(slashing_event);
+        }
+
+        response
     }
 
     /// Consensus Connection: Actually processing the transaction, performing some form of a
